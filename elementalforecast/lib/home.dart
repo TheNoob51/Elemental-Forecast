@@ -1,4 +1,6 @@
 import 'package:elementalforecast/constants/linkers.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -8,6 +10,42 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+//the code for calling in geolocator data logic
+
+  String city = "city";
+  String currentLocation = "current Location";
+
+  Future<void> _getUserLocation() async {
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return;
+      }
+    }
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+    setState(() {
+      currentLocation = '${position.latitude}, ${position.longitude}';
+    });
+    List<Placemark> placemarks =
+        await placemarkFromCoordinates(position.latitude, position.longitude);
+    Placemark placemark = placemarks[0];
+    setState(() {
+      city = '${placemark.locality}, ${placemark.administrativeArea}';
+    });
+  }
+
+  Future<void> _refreshLocation() async {
+    _getUserLocation();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _getUserLocation();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -20,7 +58,11 @@ class _MyHomePageState extends State<MyHomePage> {
                 //refresh Mechanism
                 icon: const Icon(Icons.refresh_sharp),
                 onPressed: () {
-                  setState(() {});
+                  setState(() {
+                    setState(() {
+                      _refreshLocation();
+                    });
+                  });
                 },
               )
             ]),
@@ -28,32 +70,15 @@ class _MyHomePageState extends State<MyHomePage> {
           child: Column(
             //Main Column for page
             children: [
-              Row(
-                //City and current location Division
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Column(
-                    //Column to separate city and current location
-                    children: [
-                      const Text(
-                        "City",
-                        style: TextStyle(color: black, fontSize: 40),
-                      ),
-                      Row(
-                        //for icon and current location positioning
-                        children: [
-                          const Icon(Icons.my_location_sharp),
-                          5.widthBox,
-                          const Text(
-                            "Current Location",
-                            style: TextStyle(color: black),
-                          ),
-                        ],
-                      )
-                    ],
-                  ),
-                ],
-              ),
+              //calling citys name with this widget
+              cityname(city: city),
+
+              10.heightBox,
+
+              //getting longitude and latitude with this widget
+              LocationCordinate(currentLocation: currentLocation),
+
+              //getting weather and other static things (still gotta work on it)
               Container(
                 //weather icon and temp and description
                 margin: const EdgeInsets.only(left: 40, right: 40),
@@ -165,7 +190,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               10.heightBox,
               Container(
-                padding: EdgeInsets.all(10.0),
+                padding: const EdgeInsets.all(10.0),
                 //for hourly forecast
                 color: red,
                 child: Column(
@@ -226,7 +251,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   onPressed: () {
                     print("object");
                   },
-                  child: Text("data"))
+                  child: const Text("data"))
             ],
           ),
         ));
