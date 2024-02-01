@@ -12,3 +12,4 @@ export 'dart:convert';
 //for home widgets
 export 'package:elementalforecast/home_widgets/cityname.dart';
 export 'package:elementalforecast/home_widgets/LocationCordinates.dart';
+export 'package:elementalforecast/home_widgets/HourlyForecastItem.dart';
